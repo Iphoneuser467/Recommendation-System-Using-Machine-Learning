@@ -3,6 +3,10 @@ import pandas as pd
 import time
 from movie_recommender import MovieRecommender
 from book_recommender import BookRecommender
+from utils import fetch_movie_poster
+
+# TMDB API key
+TMDB_API_KEY = "a3cff69113f4a26d65a401aeb3e68c6c"
 
 # Set page configuration
 st.set_page_config(
@@ -18,6 +22,8 @@ if 'book_recommender' not in st.session_state:
     st.session_state.book_recommender = None
 if 'recommendation_type' not in st.session_state:
     st.session_state.recommendation_type = "Movies"
+if 'poster_cache' not in st.session_state:
+    st.session_state.poster_cache = {}
 
 def load_movie_recommender():
     """Load the movie recommender if not already loaded"""
@@ -38,6 +44,24 @@ def switch_recommendation_type():
     else:
         st.session_state.recommendation_type = "Movies"
     st.rerun()
+
+def get_movie_poster(movie_title):
+    """Get movie poster from cache or API"""
+    # Check if we already have this poster in cache
+    if movie_title in st.session_state.poster_cache:
+        return st.session_state.poster_cache[movie_title]
+    
+    # Fetch poster from API
+    poster_url = fetch_movie_poster(movie_title, TMDB_API_KEY)
+    
+    # Use placeholder if poster not found
+    if not poster_url:
+        poster_url = "https://via.placeholder.com/150x225?text=Movie+Poster"
+    
+    # Cache the result
+    st.session_state.poster_cache[movie_title] = poster_url
+    
+    return poster_url
 
 # App header
 st.title("📚 Movie & Book Recommendation System")
@@ -101,10 +125,9 @@ if st.session_state.recommendation_type == "Movies":
                     col1, col2 = st.columns([1, 3])
                     
                     with col1:
-                        # Show movie poster placeholder
-                        st.image("https://via.placeholder.com/150x225?text=Movie+Poster", 
-                                caption=selected_movie,
-                                width=150)
+                        # Get and show movie poster
+                        poster_url = get_movie_poster(selected_movie)
+                        st.image(poster_url, caption=selected_movie, width=150)
                     
                     with col2:
                         st.write(f"**Release Year:** {movie_details.get('year', 'N/A')}")
@@ -127,10 +150,10 @@ if st.session_state.recommendation_type == "Movies":
                                 movie = recommendations.iloc[rec_idx]
                                 with cols[col_idx]:
                                     st.write(f"**{rec_idx + 1}. {movie['title']}**")
-                                    # Show movie poster placeholder
-                                    st.image("https://via.placeholder.com/100x150?text=Movie+Poster", 
-                                            width=100)
-                                    st.write(f"Year: {movie.get('year', 'N/A')}")
+                                    # Get and show movie poster
+                                    poster_url = get_movie_poster(movie['title'])
+                                    st.image(poster_url, width=100)
+                                    st.write(f"Year: {movie.get('release_year', 'N/A')}")
                                     st.write(f"Genres: {', '.join(movie.get('genres', ['N/A']))}")
                                     st.write(f"Similarity: {movie['similarity_score']:.2f}")
                     

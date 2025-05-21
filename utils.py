@@ -94,3 +94,41 @@ def find_similar_items(item_name, df, similarity_matrix, id_column='title', n_re
     recommendations['similarity_score'] = [i[1] for i in top_scores]
     
     return recommendations
+
+def fetch_movie_poster(movie_title, api_key):
+    """
+    Fetch movie poster from TMDB API
+    
+    Args:
+        movie_title (str): Title of the movie
+        api_key (str): TMDB API key
+    
+    Returns:
+        str: URL of the movie poster or None if not found
+    """
+    try:
+        # Search for the movie
+        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={movie_title}"
+        response = requests.get(search_url)
+        response.raise_for_status()
+        
+        # Get search results
+        search_results = response.json()
+        
+        # Check if we have results
+        if search_results['results'] and len(search_results['results']) > 0:
+            # Get the first result
+            movie = search_results['results'][0]
+            
+            # Check if there's a poster path
+            if movie['poster_path']:
+                # Construct the full poster URL
+                poster_url = f"https://image.tmdb.org/t/p/w500{movie['poster_path']}"
+                return poster_url
+        
+        # If we get here, no poster was found
+        return None
+    
+    except Exception as e:
+        print(f"Error fetching poster for {movie_title}: {e}")
+        return None
