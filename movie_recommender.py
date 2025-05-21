@@ -17,6 +17,9 @@ class MovieRecommender:
         except LookupError:
             nltk.download('punkt', quiet=True)
         
+        # Make sure NLTK data is downloaded
+        nltk.download('punkt', quiet=True)
+        
         # Initialize stemmer for text processing
         self.ps = PorterStemmer()
         
