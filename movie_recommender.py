@@ -53,8 +53,8 @@ class MovieRecommender:
         # Convert to lowercase and remove special characters
         text = re.sub('[^a-zA-Z0-9\s]', '', text.lower())
         
-        # Tokenize and stem words
-        words = nltk.word_tokenize(text)
+        # Simple tokenization by splitting on whitespace
+        words = text.split()
         stemmed_words = [self.ps.stem(word) for word in words]
         
         return ' '.join(stemmed_words)
