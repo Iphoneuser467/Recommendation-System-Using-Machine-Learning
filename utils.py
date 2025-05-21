@@ -97,7 +97,7 @@ def find_similar_items(item_name, df, similarity_matrix, id_column='title', n_re
 
 def fetch_movie_poster(movie_title, api_key):
     """
-    Fetch movie poster from TMDB API
+    Fetch movie poster from TMDB API with improved search
     
     Args:
         movie_title (str): Title of the movie
@@ -107,8 +107,12 @@ def fetch_movie_poster(movie_title, api_key):
         str: URL of the movie poster or None if not found
     """
     try:
+        # Clean the movie title for better search results
+        # Remove year in parentheses if present
+        clean_title = movie_title.split('(')[0].strip()
+        
         # Search for the movie
-        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={movie_title}"
+        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={clean_title}"
         response = requests.get(search_url)
         response.raise_for_status()
         
@@ -121,10 +125,26 @@ def fetch_movie_poster(movie_title, api_key):
             movie = search_results['results'][0]
             
             # Check if there's a poster path
-            if movie['poster_path']:
+            if movie.get('poster_path'):
                 # Construct the full poster URL
                 poster_url = f"https://image.tmdb.org/t/p/w500{movie['poster_path']}"
                 return poster_url
+                
+        # If we didn't find a poster, try a more generic search
+        # by taking just the first few words of the title
+        words = clean_title.split()
+        if len(words) > 1:
+            shorter_title = ' '.join(words[:2])  # Use first two words
+            search_url = f"https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={shorter_title}"
+            response = requests.get(search_url)
+            response.raise_for_status()
+            
+            search_results = response.json()
+            if search_results['results'] and len(search_results['results']) > 0:
+                movie = search_results['results'][0]
+                if movie.get('poster_path'):
+                    poster_url = f"https://image.tmdb.org/t/p/w500{movie['poster_path']}"
+                    return poster_url
         
         # If we get here, no poster was found
         return None
