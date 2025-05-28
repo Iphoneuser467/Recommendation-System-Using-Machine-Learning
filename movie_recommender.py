@@ -122,13 +122,13 @@ class MovieRecommender:
         # Get the top N most similar movies (excluding the input movie)
         similarity_scores = similarity_scores[1:num_recommendations+1]
         
-        # Get movie indices
+      
         movie_indices = [i[0] for i in similarity_scores]
         
-        # Create a dataframe with recommended movies
+       
         recommendations = self.df.iloc[movie_indices].copy()
         
-        # Add similarity scores to the dataframe
+       
         recommendations['similarity_score'] = [i[1] for i in similarity_scores]
         
         return recommendations[['title', 'genres', 'release_year', 'vote_average', 'similarity_score']]
